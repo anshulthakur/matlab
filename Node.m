@@ -8,6 +8,7 @@ classdef Node < handle
         connected_neighbours = []; %array of objects of node types
         is_edge = false; % is on the edge of the grid? Could be computed
         system;
+        streams;
     end
     
     methods
@@ -170,6 +171,10 @@ classdef Node < handle
         
         function install_system(obj, capacity, num_servers, policy, rates)
             obj.system = System(obj.index, capacity, num_servers, policy, rates);
+        end
+        
+        function obj = getSystemHandle(self)
+            obj = self.system;
         end
         
         function putNeighbours(obj, topology)

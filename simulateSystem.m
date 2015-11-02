@@ -1,10 +1,21 @@
+%Create Topology
+grid_size = struct('rows',1,'columns',2);
+topology = Topology.getTopology(2, grid_size, 1, 1);
+%Create SimScheduler
 scheduler = SimScheduler.getScheduler();
 scheduler.setRunLength(10);
+%init Scheduler with scheduler
+scheduler.init(topology);
 
-system{1} =  System(1,0,1,0,[], 2); %Initialize system
-packet = Packet(); %Create Packet
+%Install Systems on Grid
+topology.installSystems(0, 1, 0, 2);
+%Install Adjacencies
+topology.installAdjacencies();
 
-scheduler.addSystem(system);
+%system{1} =  System(1,0,1,0,[], 2); %Initialize system
+%packet = Packet(); %Create Packet
+
+%scheduler.addSystems(system);
 
 scheduler.runScheduler();
 
@@ -15,12 +26,5 @@ while(scheduler.isRunning())
     scheduler.runScheduler();
 end
 scheduler.destroy();
-clear packet;
-clear system;
-clear scheduler;
-
-
-%Create Topology
-%Create SimScheduler
-%Install Systems on Grid
-%Install Adjacencies
+topology.destroy();
+clear;

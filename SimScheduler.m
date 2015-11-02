@@ -10,13 +10,16 @@ classdef SimScheduler < handle
         ttl;    %Time instants to run simulation for
         time;
         systems;
+        num_systems;
     end
 
     methods (Access=private)
         function obj = SimScheduler()
             fprintf('\nNew Scheduler instance');
             obj.ttl = 0;            
-            obj.time = 0;            
+            obj.time = 0;
+            obj.systems = {};
+            obj.num_systems = 0;
         end
     end
     
@@ -46,11 +49,6 @@ classdef SimScheduler < handle
 
     methods              
         function destroy(obj)
-            obj.topology = [];
-            obj.systems = [];
-            obj.ttl = [];
-            obj.time = [];
-            obj.running = [];
             SimScheduler.getScheduler(true);
         end        
         
@@ -94,9 +92,13 @@ classdef SimScheduler < handle
             status = obj.running;
         end
         
-        function addSystem(obj, system)
-            obj.systems = [obj.systems, cell(1,1)];
-            obj.systems{end} = system;
+        function addSystems(obj, ~, systems)
+            fprintf('\nAdding %d system',numel(systems.system));
+            for i=1:length(systems.system)
+                obj.systems = [obj.systems, cell(1,1)];
+                obj.systems{end} = systems.system{i};
+                fprintf('\nAdded System (id: %d)',obj.systems{end}.id); 
+            end
         end
         
         function PacketStatUpdate(obj, packet)
@@ -106,6 +108,16 @@ classdef SimScheduler < handle
         function hdl = RegisterPacketDestroy(obj, packet)
             hdl = addlistener(packet, 'deletePacket',...
                 @(src,~)obj.PacketStatUpdate(src));
+        end
+        
+        function hdl = RegisterSystemAdd(obj, topology)
+            hdl = addlistener(topology, 'newSystem',...
+                @(src, data)obj.addSystems(src, data));
+        end
+        
+        function init(obj, topology,packetStreams)
+            obj.RegisterSystemAdd(topology);
+            
         end
                 
     end

@@ -39,7 +39,7 @@ classdef System < handle
                     obj.transmitter.RegisterServiceDone(obj.stations{i});
             end
             
-        end
+        end       
         
         function serve(obj)
             for id=1:length(obj.stations)

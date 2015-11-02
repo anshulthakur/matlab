@@ -22,6 +22,10 @@ classdef Topology < handle
        edge_coords;
     end
     
+    events
+       newSystem; 
+    end
+    
     methods(Static)
       % This method serves as the global point of access in creating a
       % single instance *or* acquiring a reference to the singleton.
@@ -138,18 +142,20 @@ classdef Topology < handle
     
     methods
         function destroy(obj)        
-            SimScheduler.getScheduler(true);
+            obj.getTopology(true);
         end
         
         function installSystems(obj, capacity, num_servers, policy, rates)
             for i=1:length(obj.nodes)
                 obj.nodes{i}.install_system(capacity, num_servers, policy, rates);
+                notify(obj, 'newSystem', ...
+                    AddSystemEventData(obj.nodes{i}.getSystemHandle()));
             end
         end
         
         function installAdjacencies(obj)
             for i=1:length(obj.nodes)
-                obj.nodes{i}.install_system(capacity, num_servers, policy, rates);
+                obj.nodes{i}.putNeighbours(obj);
             end
         end
         
