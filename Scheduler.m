@@ -1,4 +1,4 @@
-classdef Scheduler < handle
+classdef Scheduler < handle & BaseEntity
     %Scheduler Schedules the packet for processing in one of the servers
     
     properties
@@ -6,11 +6,12 @@ classdef Scheduler < handle
         servers;
         free_servers;
         queue;
+        free_server_count; 
     end
     
-    properties (Dependent=true)
-       free_server_count; 
-    end
+%    properties (Dependent=true)
+%       free_server_count; 
+%    end
     
     methods
         function cnt = get.free_server_count(obj)
@@ -22,6 +23,7 @@ classdef Scheduler < handle
             obj.servers = stations;
             obj.free_servers = stations;
             obj.queue = queue;
+            obj.free_server_count = length(obj.free_servers);
         end
         
         function routeToServer(obj, queue)
@@ -33,9 +35,10 @@ classdef Scheduler < handle
                 %Select a server based on policy
                 %for now, choose the next available server
                 obj.free_servers{1}.feed(packet);
-                fprintf('\nFeed to server %d at time %d', ...
-                                    obj.free_servers{1}.id, current_time);
-                obj.free_servers = obj.free_servers(2:end);                
+                %fprintf('\nFeed to server %d at time %d', ...
+                %                    obj.free_servers{1}.id, current_time);
+                obj.free_servers = obj.free_servers(2:end);
+                obj.free_server_count = obj.free_server_count -1;
             end            
         end
         
@@ -44,7 +47,7 @@ classdef Scheduler < handle
                 @(src, ~)self.routeToServer(src));
         end
         
-        function runScheduler(obj, station)     
+        function runScheduler(obj, station, ~)     
             %current_time = SimScheduler.getScheduler().getTime();
             
             %Dequeue packet if any
@@ -54,6 +57,7 @@ classdef Scheduler < handle
             if(isa(packet, 'Packet'))
                 station.feed(packet);
             else
+                station.current_job{end} = cell(1,1);
                 obj.free_servers = [obj.free_servers, cell(1,1)];
                 obj.free_servers{end} = station;
             end            
@@ -61,7 +65,7 @@ classdef Scheduler < handle
         
         function obj = RegisterServiceDone(self, station)
             obj = addlistener(station, 'serviceDone',...
-                @(src, ~)self.runScheduler(src));
+                @(src, data)self.runScheduler(src, data));
         end
     end
     

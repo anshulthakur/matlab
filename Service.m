@@ -1,4 +1,4 @@
-classdef Service < handle
+classdef Service < handle & BaseEntity
     %Service A representation of a server having some service time
     % distribution
         
@@ -8,13 +8,17 @@ classdef Service < handle
         classes;    % Classes of traffic supported
         rate;       % Per class rate
         variance;   % Per class variance
-        id;
+        
+        service_times;
+        
+        system_id;
     end
     properties %(Access = private)
        busy_period;
        idle_period;
        is_busy;
-       current_job;       
+       current_job;
+       
     end
     
     events
@@ -79,17 +83,26 @@ classdef Service < handle
             
             %Time to completion
             packet.last_service_start = current_time;
-            packet.finish_time = packet.last_service_start + packet.length;
+            %packet.finish_time = packet.last_service_start + packet.length;
+            packet.finish_time = current_time +(( -(1/obj.rate) * log(rand(1)))*1000);
+            obj.current_job = cell(1,1);            
             obj.current_job{end} = packet;
-            fprintf('\nAdded packet of length %d to server id:%d at Time %d\n',...
-                                                  obj.current_job{end}.length, obj.id, current_time);
-            fprintf('Start Time: %d\t Finish Time: %d',...
-                obj.current_job{end}.last_service_start, obj.current_job{end}.finish_time);  
+            
+            fprintf('\n[%d][System %d]:Added packet of length %d to server id:%d',...
+                          current_time, obj.system_id, obj.current_job{end}.length, obj.id);
+            fprintf('\n[%d][System %d]:Start Time: %d\t Finish Time: %d\t Serve Time: %d',...
+                current_time, obj.system_id, ...
+                obj.current_job{end}.last_service_start, ...
+                obj.current_job{end}.finish_time,...
+                packet.finish_time - packet.last_service_start);
+            
             obj.is_busy = true;
+            obj.service_times = [obj.service_times, packet.finish_time - packet.finish_time];
         end
         
         function serve(obj)            
             current_time = SimScheduler.getScheduler().getTime();
+
             %fprintf('\n Server: %d\tTime: %d',obj.id, current_time);
             if(~obj.is_busy)
                 %fprintf('\nIdle');
@@ -100,16 +113,16 @@ classdef Service < handle
             %fprintf('\nCurrent Job Stats:\nStart Time: %d\t Finish Time: %d',...
             %    obj.current_job{end}.last_service_start, ...
             %                        obj.current_job{end}.finish_time);
-                                
-            if obj.current_job{end}.finish_time == current_time
+            %fprintf('\n[%d][System %d]', current_time, obj.system_id);            
+            
+            if obj.current_job{end}.finish_time <= current_time
                 obj.busy_period = obj.busy_period + ...
                     obj.current_job{end}.age_in_service;
-                fprintf('\nFinished service on server id:%d at Time %d',...
-                                                    obj.id, current_time);
+                fprintf('\n[%d][System %d]:Finished service on server id:%d',...
+                                        current_time, obj.system_id, obj.id);
                 obj.is_busy = false;
                 obj.current_job{end}.state = 0;
-                notify(obj, 'serviceDone');
-                obj.current_job{end} = cell(1,1);
+                notify(obj, 'serviceDone', EventData(obj.current_job{end}));                
             end
         end
     end

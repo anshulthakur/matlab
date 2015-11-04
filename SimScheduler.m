@@ -58,30 +58,37 @@ classdef SimScheduler < handle
         
         function runScheduler(obj)
             
-            fprintf('\nRun scheduler at t=%d',obj.time);        
+            %fprintf('\nRun scheduler at t=%d',obj.time);        
             
-            if(obj.time < obj.ttl)
-                obj.time = obj.time +1;
+            if(obj.time < obj.ttl)                
+                %allow systems to process
                 for i=1:length(obj.systems)
                     obj.systems{i}.serve();
                 end
-                %Transmit
+                %Transmit their buffers
                 for i=1:length(obj.systems)
                     obj.systems{i}.transmit();
                 end
-            
+                %take packet out of each stream and conditionally enqueue
+                for i=1:length(obj.systems)
+                   for j=1:length(obj.systems{i}.streams)                       
+                       packet = obj.systems{i}.streams{j}.getPendingPacket(obj.time);
+                       if(isa(packet,'Packet'))
+                           obj.RegisterPacketDestroy(packet);
+                           %enqueue into system
+                           obj.systems{i}.enqueue(packet);
+                       end
+                   end
+                end                
+                obj.time = obj.time +1;
             else
                 fprintf('\nSimulation complete. Scheduler halting.');
                 obj.running = false;
             end
-            if(obj.time == 1)
-                fprintf('\nScheduler starting.');
-                obj.running = true;
-            end
         end
         
         function setRunLength(obj, time)
-            obj.ttl = time;
+            obj.ttl = time * 1000; %milliseconds
         end
         
         function setTopology(obj, top)
@@ -93,7 +100,6 @@ classdef SimScheduler < handle
         end
         
         function addSystems(obj, ~, systems)
-            fprintf('\nAdding %d system',numel(systems.system));
             for i=1:length(systems.system)
                 obj.systems = [obj.systems, cell(1,1)];
                 obj.systems{end} = systems.system{i};
@@ -115,9 +121,31 @@ classdef SimScheduler < handle
                 @(src, data)obj.addSystems(src, data));
         end
         
-        function init(obj, topology,packetStreams)
-            obj.RegisterSystemAdd(topology);
-            
+        function init(obj, topology)
+            obj.setTopology(topology);
+            obj.RegisterSystemAdd(topology);            
+        end
+        
+        function ttl = getTtl(obj)
+            ttl = obj.ttl/1000; %Reconvert to seconds
+        end
+        
+        function spinScheduler(obj)
+           obj.running = true; 
+           fprintf('\nScheduler starting.');
+        end
+        
+        function scheduleStreams(obj, lambdas)
+            %for each stream, assiciate a class of traffic             
+            for i=1:length(obj.systems)
+               stream = cell(1,length(lambdas));
+               for j=1:length(lambdas)
+                   stream{j}=Stream(obj.ttl, lambdas(j), j);
+               end
+               obj.systems{i}.streams = stream;
+               fprintf('\nAssociated %d streams with System %d', ...
+                                        length(stream), obj.systems{i}.id);
+            end
         end
                 
     end

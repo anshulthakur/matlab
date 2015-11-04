@@ -11,7 +11,7 @@ classdef Topology < handle
        connect_policy = 1;   % Proobability to connect with adjacent nodes
        connect_edges = 1;
        grid_size = [0,0];
-       grid;
+       grid;       
        positions;
        nodes;
        node_handles;
@@ -158,7 +158,7 @@ classdef Topology < handle
                 obj.nodes{i}.putNeighbours(obj);
             end
         end
-        
+                
         function fig = visualize(obj)
             fig = figure('Name','Topology');
             indices = zeros(0,2);

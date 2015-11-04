@@ -1,4 +1,4 @@
-classdef Queue < handle
+classdef Queue < handle & BaseEntity
     properties
         capacity; 
     end
@@ -24,13 +24,13 @@ classdef Queue < handle
             current_time = SimScheduler.getScheduler().getTime();
             
             if(nargin==0 || (nargin >0 && capacity==0)) %Inifinite buffer
-                fprintf('\nInitialize Queue with infinite buffer capacity. Time %d', current_time);
+                fprintf('\n[%d]Initialize Queue with infinite buffer capacity.', current_time);
                 obj.elements = cell(1, 10);
                 obj.capacity = 0;
             else
                 obj.elements = cell(1,capacity);
                 obj.capacity = capacity;
-                fprintf('\nInitialize Queue with buffer capacity of %d. Time %d',obj.capacity, current_time);
+                fprintf('\n[%d]Initialize Queue with buffer capacity of %d.',current_time, obj.capacity );
             end
             obj.nextInsert = 1;
             obj.nextRemove = 1;
@@ -59,7 +59,7 @@ classdef Queue < handle
             el.last_wait_start = current_time;
             el.state = 0;
             % Allow some server to get the packet            
-            fprintf('\nEnqueue at time %d', current_time);
+            fprintf('\n[%d][System %d]:Enqueue', current_time, obj.id);
             notify(obj, 'Enqueue');            
         end
         
@@ -91,7 +91,7 @@ classdef Queue < handle
                         
             el.state = 1;
             
-            fprintf('\nDequeue at time %d', current_time);
+            fprintf('\n[%d][System %d]:Dequeue', current_time, obj.id );
             notify(obj,'Dequeue');
         end
         

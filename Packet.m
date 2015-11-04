@@ -26,8 +26,7 @@ classdef Packet < handle
     end
     
     methods
-        function obj = Packet(length)
-            current_time = SimScheduler.getScheduler().getTime();
+        function obj = Packet(time, length)
             
             if(nargin==0)
                 obj.length = ceil(rand(1)*10);
@@ -41,7 +40,7 @@ classdef Packet < handle
                 end
             end
             
-            obj.birth_time = current_time;
+            obj.birth_time = time;
             obj.state = -1;
             obj.class = 0;
             

@@ -8,7 +8,6 @@ classdef Node < handle
         connected_neighbours = []; %array of objects of node types
         is_edge = false; % is on the edge of the grid? Could be computed
         system;
-        streams;
     end
     
     methods

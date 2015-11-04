@@ -1,12 +1,13 @@
-classdef System < handle
+classdef System < handle & BaseEntity
     %SYSTEM Represents a System to be installed on a node
     
     properties
-        id;
         queue;
         stations;
         scheduler;
         transmitter;
+        streams;
+        
     end
     
     properties (Transient)
@@ -20,14 +21,18 @@ classdef System < handle
                                                         rates)
             obj.id = id;
             obj.queue = Queue(capacity);
+            obj.queue.id = id;
+            
             obj.stations = cell(1,num_stations);
-            for id=1:length(obj.stations)
+            for i=1:length(obj.stations)
                 %Initialize server
-                obj.stations{id} = Service(id, 0, rates(id), ...
+                obj.stations{i} = Service(i, 0, rates(i), ...
                                                         [], 'exponential');
+                obj.stations{i}.system_id = obj.id;
             end
             obj.scheduler = Scheduler(obj.stations, obj.queue);
             obj.transmitter = Transmit(num_stations);
+            obj.transmitter.id = id;
             
             %Attach scheduler to queue
             obj.queue_handle = obj.scheduler.JoinQueue(obj.queue);
