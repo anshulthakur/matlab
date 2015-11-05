@@ -59,7 +59,7 @@ classdef Queue < handle & BaseEntity
             el.last_wait_start = current_time;
             el.state = 0;
             % Allow some server to get the packet            
-            fprintf('\n[%d][System %d]:Enqueue', current_time, obj.id);
+            %fprintf('\n[%d][System %d]:Enqueue', current_time, obj.id);
             notify(obj, 'Enqueue');            
         end
         
@@ -87,11 +87,11 @@ classdef Queue < handle & BaseEntity
                 obj.nextInsert = obj.nextInsert -1;
             end
             
-            current_time = SimScheduler.getScheduler().getTime();
+            %current_time = SimScheduler.getScheduler().getTime();
                         
             el.state = 1;
             
-            fprintf('\n[%d][System %d]:Dequeue', current_time, obj.id );
+            %fprintf('\n[%d][System %d]:Dequeue', current_time, obj.id );
             notify(obj,'Dequeue');
         end
         

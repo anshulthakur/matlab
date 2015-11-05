@@ -64,6 +64,17 @@ classdef System < handle & BaseEntity
         function installAdjacencies(obj, neighbours)
             obj.transmitter.initTx(neighbours);
         end
+        
+        function q_len = getQueueLength(obj)
+            q_len = obj.queue.NumElements;
+        end
+        
+        function serviceTime = getDistribution(obj)
+            serviceTime = [];
+            for i=1:length(obj.stations)
+                serviceTime = [serviceTime, obj.stations{i}.getDistribution()];
+            end
+        end
     end
     
 end

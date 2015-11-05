@@ -60,7 +60,7 @@ classdef Packet < handle
         
         function age = get.age_in_network(obj)
             current_time = SimScheduler.getScheduler().getTime();
-            age = current_time - obj.birth_time -1;
+            age = current_time - round(obj.birth_time);
         end
         
         function destroy(obj)

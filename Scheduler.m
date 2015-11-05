@@ -27,7 +27,7 @@ classdef Scheduler < handle & BaseEntity
         end
         
         function routeToServer(obj, queue)
-            current_time = SimScheduler.getScheduler().getTime();
+            %current_time = SimScheduler.getScheduler().getTime();
             
             %dequeue from object and assign to a server
             if(obj.free_server_count > 0)

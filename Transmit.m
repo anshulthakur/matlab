@@ -16,7 +16,7 @@ classdef Transmit < BaseQueue & BaseEntity
         function transmit(obj)
            if(obj.buffer.NumElements > 0)
                current_time = SimScheduler.getScheduler().getTime();
-               fprintf('\n[%d][System %d]',current_time, obj.id);
+               %fprintf('\n[%d][System %d]',current_time, obj.id);
                %dequeue and transmit
                packet = obj.buffer.remove();
                if(~isa(packet,'Packet'))
@@ -28,14 +28,14 @@ classdef Transmit < BaseQueue & BaseEntity
                egress = datasample(obj.commutator, 1);
                if(egress ~= 1)
                    %enqueue in the next system
-                   fprintf('\n[%d][System %d]:Enqueue into System %d',...
-                                current_time,...
-                                obj.id, obj.neighbours{egress -1}.system.id);
+                   %fprintf('\n[%d][System %d]:Enqueue into System %d',...
+                   %             current_time,...
+                   %             obj.id, obj.neighbours{egress -1}.system.id);
                    obj.neighbours{egress -1}.system.enqueue(packet);
                else
                    %drop packet
-                   fprintf('\n[%d][System %d]:Drop packet.',...
-                            current_time, obj.id);
+                   %fprintf('\n[%d][System %d]:Drop packet.',...
+                   %         current_time, obj.id);
                    packet.destroy();
                end
            end

@@ -130,11 +130,11 @@ classdef Topology < handle
             for element=1:numel(map.positions)
                 map.grid(map.positions(element)) = 1;
                 % Also, initialize a node at this point
-                nodes{element} = Node(map.positions(element), map.grid_size, map.positions, ...
+                node{element} = Node(map.positions(element), map.grid_size, map.positions, ...
                                         map.connect_policy, map.edge_nodes, ...
                                         map.connect_edges);
             end
-            map.nodes = nodes;
+            map.nodes = node;
             fprintf('\nNodes placed as: \n');
             disp(map.grid);
         end
@@ -174,9 +174,9 @@ classdef Topology < handle
             for i=1:numel(obj.nodes)
                 pos = [obj.nodes{i}.position.y, obj.nodes{i}.position.x];
                 
-                fprintf('\nConnect for node at:');
+                fprintf('\n[Topology]:Connect for node at:');
                 disp([obj.nodes{i}.position.y,obj.nodes{i}.position.x]);
-                fprintf('\nNeighbours at:');
+                fprintf('\n[Topology]:Neighbours at:');
                 
                 for j=1:numel(obj.nodes{i}.connected_neighbours)    
                     [pos_y,pos_x] = ind2sub(obj.grid_size, obj.nodes{i}.connected_neighbours(j));

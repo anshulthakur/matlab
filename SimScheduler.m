@@ -4,6 +4,7 @@ classdef SimScheduler < handle
     properties
         topology ; %Topology being simulated
         running = false;
+        packet_lifetimes;
     end
     
     properties (Access = private)
@@ -60,7 +61,7 @@ classdef SimScheduler < handle
             
             %fprintf('\nRun scheduler at t=%d',obj.time);        
             
-            if(obj.time < obj.ttl)                
+            if((obj.ttl == 0) || ((obj.ttl ~=0) && (obj.time < obj.ttl)))                
                 %allow systems to process
                 for i=1:length(obj.systems)
                     obj.systems{i}.serve();
@@ -108,7 +109,10 @@ classdef SimScheduler < handle
         end
         
         function PacketStatUpdate(obj, packet)
-            fprintf('\nPacket Lifetime: %d',packet.age_in_network);
+            %fprintf('\nPacket Lifetime: %d',packet.age_in_network);
+            obj.packet_lifetimes = [obj.packet_lifetimes, ...
+                                            round(packet.age_in_network)];
+            clear packet;
         end
         
         function hdl = RegisterPacketDestroy(obj, packet)
@@ -146,6 +150,38 @@ classdef SimScheduler < handle
                fprintf('\nAssociated %d streams with System %d', ...
                                         length(stream), obj.systems{i}.id);
             end
+        end
+        
+        function visualizePacketLife(obj)
+            histogram(obj.packet_lifetimes, 'Normalization','pdf');
+        end
+        
+        function showQueueLengths(obj)
+            q_len = zeros(1,length(obj.systems));
+            for i=1:length(obj.systems)
+                fprintf('\n[System %d]\t%d', obj.systems{i}.id, ...
+                                obj.systems{i}.getQueueLength);
+                q_len(i) = obj.systems{i}.getQueueLength;
+            end
+            fprintf('\nMean Queue Length: %d', mean(q_len));
+        end
+        
+        function visualizeServiceTime(obj, scope, id)
+            distribution=[];
+            if(strcmp(scope,'local'))
+                for i=1:length(obj.systems)
+                    if(obj.systems{i}.id == id)
+                        histogram(obj.systems{i}.getDistribution(),...
+                                                    'Normalization','pdf');
+                        break;
+                    end
+                end                
+            elseif(strcmp(scope,'network'))
+                for i=1:length(obj.systems)
+                    distribution = [distribution, obj.systems{i}.getDistribution()];
+                end                
+                histogram(distribution, 'Normalization', 'pdf');
+            end                
         end
                 
     end
