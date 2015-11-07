@@ -7,6 +7,9 @@ classdef SimScheduler < handle
         packet_lifetimes;
         packet_hopcounts;
         packet_wait_times;
+        
+        num_packets_dropped = 0;
+        num_packets_delivered = 0;
     end
     
     properties (Access = private)
@@ -122,7 +125,11 @@ classdef SimScheduler < handle
                                             round(packet.hop_count)];
             obj.packet_wait_times = [obj.packet_wait_times, ...
                                     packet.wait_times];
-            clear packet;
+            if(~packet.delivered)
+                obj.num_packets_dropped = obj.num_packets_dropped +1;
+            else
+                obj.num_packets_delivered = obj.num_packets_delivered +1;
+            end
         end
         
         function hdl = RegisterPacketDestroy(obj, packet)
@@ -234,7 +241,34 @@ classdef SimScheduler < handle
             end            
         end
         
-        
+        function p = getBlockingProbability(obj, scope, id)
+            if(strcmp(scope,'local'))
+                for i=1:length(obj.systems)
+                    if(obj.systems{i}.id == id)
+                        p = obj.systems{i}.getBlockingProbability();
+                        fprintf('\n[Server %d]: Blocking Probability: %d',...
+                                    obj.systems{i}.id, p);
+                        break;
+                    end
+                end                
+            elseif(strcmp(scope,'network'))
+                p = obj.num_packets_dropped/(obj.num_packets_dropped + ...
+                                        obj.num_packets_delivered);               
+                fprintf('\nNetwork: Blocking Probability: %d', p);
+            else %Display all.
+                for i=1:length(obj.systems)
+                    if(obj.systems{i}.id == id)
+                        p = obj.systems{i}.getBlockingProbability();
+                        fprintf('\n[Server %d]: Blocking Probability: %d',...
+                                    obj.systems{i}.id, p);
+                        break;
+                    end                    
+                end
+                p = obj.num_packets_dropped/(obj.num_packets_dropped + ...
+                                        obj.num_packets_delivered);               
+                fprintf('\nNetwork: Blocking Probability: %d', p);
+            end            
+        end
                 
     end
     

@@ -6,7 +6,10 @@ classdef Scheduler < handle & BaseEntity
         servers;
         free_servers;
         queue;
-        free_server_count; 
+        free_server_count;
+        
+        num_dropped;
+        num_admitted;
     end
     
 %    properties (Dependent=true)
@@ -24,10 +27,12 @@ classdef Scheduler < handle & BaseEntity
             obj.free_servers = stations;
             obj.queue = queue;
             obj.free_server_count = length(obj.free_servers);
+            
         end
         
         function routeToServer(obj, queue)
             %current_time = SimScheduler.getScheduler().getTime();
+            obj.num_admitted = obj.num_admitted +1;
             
             %dequeue from object and assign to a server
             if(obj.free_server_count > 0)
@@ -42,9 +47,15 @@ classdef Scheduler < handle & BaseEntity
             end            
         end
         
+        function dropPacket(obj, queue)
+            obj.num_dropped = obj.num_dropped +1;
+        end
+        
         function obj = JoinQueue(self, queue)
-            obj = addlistener(queue, 'Enqueue',...
+            obj(1) = addlistener(queue, 'Enqueue',...
                 @(src, ~)self.routeToServer(src));
+            obj(2) = addlistener(queue, 'Drop',...
+                @(src, ~)self.dropPacket(src));
         end
         
         function runScheduler(obj, station, ~)     
@@ -66,6 +77,10 @@ classdef Scheduler < handle & BaseEntity
         function obj = RegisterServiceDone(self, station)
             obj = addlistener(station, 'serviceDone',...
                 @(src, data)self.runScheduler(src, data));
+        end
+        
+        function p = getBlockingProbability(obj)
+            p = obj.num_dropped/(obj.num_dropped + obj.num_admitted);
         end
     end
     

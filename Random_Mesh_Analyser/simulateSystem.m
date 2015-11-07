@@ -19,7 +19,7 @@ scheduler.init(topology);
 
 %Install Systems on Grid
 drop_policy = 'left'; %for no drop in non-edge nodes, or 'random'.
-topology.installSystems(0, 2, drop_policy, [3 3]); %capacity(inf), num_servers per system, policy, rates
+topology.installSystems(20, 2, drop_policy, [3 3]); %capacity(inf), num_servers per system, policy, rates
 
 %Install Adjacencies
 topology.installAdjacencies();
@@ -63,6 +63,7 @@ fprintf('\nAverage hopcounts: %d',scheduler.averageHopCounts());
 
 scheduler.getUtilization('network',0);
 
+scheduler.getBlockingProbability('network',0);
 %Cleanup the system.
 scheduler.destroy();
 topology.destroy();

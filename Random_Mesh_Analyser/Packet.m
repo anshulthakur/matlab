@@ -15,6 +15,7 @@ classdef Packet < handle
         hop_count;
         
         wait_times;
+        delivered = 1; %Reached end node, or lost in blocking?
     end
     
     properties(Dependent=true)
@@ -68,8 +69,10 @@ classdef Packet < handle
             age = current_time - round(obj.birth_time);
         end
         
-        function destroy(obj)
-            notify(obj, 'deletePacket');            
+        function destroy(obj, exception)            
+            obj.delivered = ~exception;
+            notify(obj, 'deletePacket');
+            clear obj;
         end
     end
     

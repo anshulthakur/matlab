@@ -38,14 +38,14 @@ classdef Transmit < BaseQueue & BaseEntity
                        %drop packet
                        %fprintf('\n[%d][System %d]:Drop packet.',...
                        %         current_time, obj.id);
-                       packet.destroy();
+                       packet.destroy(0);
                    end
                else %If we can't drop, then determine if we have neighbours or not.
                    if(isempty(obj.neighbours))
                        %drop packet
                        %fprintf('\n[%d][System %d]:Drop packet.',...
                        %         current_time, obj.id);
-                       packet.destroy();
+                       packet.destroy(0);
                    else
                        obj.neighbours{egress}.system.enqueue(packet);
                    end

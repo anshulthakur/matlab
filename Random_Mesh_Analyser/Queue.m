@@ -47,6 +47,7 @@ classdef Queue < handle & BaseEntity
                 if((obj.nextInsert - obj.nextRemove) == obj.capacity)
                     %Queue is full. Reject!
                     notify(obj, 'Drop');
+                    el.destroy(1); %Exception is true
                     %error('Queue is full');
                     return;
                 end

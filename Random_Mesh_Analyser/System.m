@@ -6,7 +6,7 @@ classdef System < handle & BaseEntity
         stations;
         scheduler;
         transmitter;
-        streams;        
+        streams;
     end
     
     properties (Transient)
@@ -35,6 +35,7 @@ classdef System < handle & BaseEntity
             
             %Attach scheduler to queue
             obj.queue_handle = obj.scheduler.JoinQueue(obj.queue);
+            
             %Attach scheduler and transmitter to servers
             for i=1:length(obj.stations)
                 obj.server_handles{i} = ...
@@ -89,6 +90,10 @@ classdef System < handle & BaseEntity
             for i=1:length(obj.stations)
                 utilization(i) = 1 - (obj.stations{i}.idle_period/SimScheduler.getScheduler().getTime());
             end
+        end
+        
+        function p = getBlockingProbabilities(obj)
+            p = obj.scheduler.getBlockingProbability();
         end
     end
     
