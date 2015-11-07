@@ -6,8 +6,7 @@ classdef System < handle & BaseEntity
         stations;
         scheduler;
         transmitter;
-        streams;
-        
+        streams;        
     end
     
     properties (Transient)
@@ -17,7 +16,7 @@ classdef System < handle & BaseEntity
     end
     
     methods
-        function obj = System(id,capacity, num_stations, schedule_policy, ...
+        function obj = System(id,capacity, num_stations, policy, ...
                                                         rates)
             obj.id = id;
             obj.queue = Queue(capacity);
@@ -61,8 +60,8 @@ classdef System < handle & BaseEntity
             obj.transmitter.transmit();
         end
         
-        function installAdjacencies(obj, neighbours)
-            obj.transmitter.initTx(neighbours);
+        function installAdjacencies(obj, neighbours, drop_policy)
+            obj.transmitter.initTx(neighbours, drop_policy);
         end
         
         function q_len = getQueueLength(obj)

@@ -1,7 +1,13 @@
 %Create Topology
 grid_size = struct('rows',5,'columns',5);
 
-topology = Topology.getTopology(10, grid_size, 0.5, 0); 
+topo_policy = struct('connect_vertical_edge_nodes', 0, ...
+                     'connect_horizontal_edge_nodes', 1, ...
+                     'connect_same_level_peers', 0, ...
+                     'adjacent_peer_probability', 1, ...
+                     'flow', 'forward'); %or 'random'
+                 
+topology = Topology.getTopology(25, grid_size, topo_policy); 
 %num_nodes, grid_size, mesh_connect_probability, connect_edges_0_1
 
 %Create SimScheduler
@@ -12,7 +18,8 @@ scheduler.setRunLength(20);
 scheduler.init(topology);
 
 %Install Systems on Grid
-topology.installSystems(0, 2, 0, [3 3]); %capacity(inf), num_servers per system, policy, rates
+drop_policy = 'left'; %for no drop in non-edge nodes, or 'random'.
+topology.installSystems(0, 2, drop_policy, [3 3]); %capacity(inf), num_servers per system, policy, rates
 
 %Install Adjacencies
 topology.installAdjacencies();

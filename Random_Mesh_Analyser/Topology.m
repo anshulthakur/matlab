@@ -8,8 +8,9 @@ classdef Topology < handle
     %   and randomly places the nodes in a few of these grids.
     properties
        num_nodes = 0;        % Number of nodes to draw
-       connect_policy = 1;   % Proobability to connect with adjacent nodes
-       connect_edges = 1;
+       connect_adjacent_prob = 1;   % Proobability to connect with adjacent nodes
+       connect_policy = struct('connect_v_edge',1, 'connect_h_edge',1, ...
+                                'connect_adjacents', 1, 'flow', 'random');
        grid_size = [0,0];
        grid;       
        positions;
@@ -35,17 +36,17 @@ classdef Topology < handle
       %    <none>
       % Output:
       %    obj = reference to a persistent instance of the class
-      function obj = getTopology(num_nodes, grid_size, connect_policy, connect_edges)
+      function obj = getTopology(num_nodes, grid_size, policy)
           if(nargin==1)
               clear topology;
               return;          
           end
           persistent topology
           if isempty(topology)
-              if(~nargin==4) %Must have adequate number of arguments
+              if(~nargin==3) %Must have adequate number of arguments
                   return;
               end
-              obj = Topology(num_nodes, grid_size, connect_policy, connect_edges);
+              obj = Topology(num_nodes, grid_size, policy);
               topology = obj;
           else
               obj = topology;
@@ -54,7 +55,7 @@ classdef Topology < handle
     end
     
     methods (Access=private)
-        function map = Topology(num_nodes, grid_size, connect_policy, connect_edges)
+        function map = Topology(num_nodes, grid_size, policy)
             %TOPOLOGY Create a topology with given parameters
             error_msg = 'Error creating class';
             msg_id = 'topology:badInputs';
@@ -75,16 +76,29 @@ classdef Topology < handle
                 map.grid_size(2) = grid_size.columns;
             end
             
-            if( isa(connect_policy, 'double') && (connect_policy <= 0 || connect_policy > 1))
+            %topo_policy = struct('connect_vertical_edge_nodes',0,...
+            %         'connect_horizontal_edge_nodes', 1,...
+            %         'connect_same_level_peers', 0,...
+            %         'adjacent_peer_probability', 0.5);
+            if( isa(policy, 'struct') && ...
+                    (policy.connect_vertical_edge_nodes ~= 0 ...
+                            && policy.connect_vertical_edge_nodes ~=1)...
+                    &&(policy.connect_horizontal_edge_nodes ~= 0 ...
+                            && policy.connect_horizontal_edge_nodes ~=1)...
+                    &&(policy.connect_same_level_peers ~= 0 ...
+                            && policy.connect_same_level_peers ~=1)...
+                    &&(policy.adjancent_peer_probability < 0 || ...
+                                policy.adjancent_peer_probability >1)...
+                    )
+                throw(exception);
+            elseif((grid_size.rows * grid_size.columns) < num_nodes)
                 throw(exception);
             else
-                map.connect_policy = connect_policy;
-            end
-            
-            if( isa(connect_edges, 'double') && (connect_edges ~= 0 && connect_edges ~= 1))
-                throw(exception);
-            else
-                map.connect_edges = connect_edges;
+                map.connect_policy.connect_v_edge = policy.connect_vertical_edge_nodes;
+                map.connect_policy.connect_h_edge = policy.connect_horizontal_edge_nodes;
+                map.connect_policy.connect_adjacents = policy.connect_same_level_peers;
+                map.connect_adjacent_prob = policy.adjacent_peer_probability;
+                map.connect_policy.flow = policy.flow;
             end
             
             % now construct a grid
@@ -131,8 +145,7 @@ classdef Topology < handle
                 map.grid(map.positions(element)) = 1;
                 % Also, initialize a node at this point
                 node{element} = Node(map.positions(element), map.grid_size, map.positions, ...
-                                        map.connect_policy, map.edge_nodes, ...
-                                        map.connect_edges);
+                                map.connect_policy, map.edge_nodes, map.connect_adjacent_prob);
             end
             map.nodes = node;
             fprintf('\nNodes placed as: \n');

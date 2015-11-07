@@ -6,6 +6,7 @@ classdef Transmit < BaseQueue & BaseEntity
         policy;
         buffer;
         commutator;
+        drop_policy;
     end
     
     methods
@@ -26,24 +27,48 @@ classdef Transmit < BaseQueue & BaseEntity
                end
                %randmoly select next destination
                egress = datasample(obj.commutator, 1);
-               if(egress ~= 1)
-                   %enqueue in the next system
-                   %fprintf('\n[%d][System %d]:Enqueue into System %d',...
-                   %             current_time,...
-                   %             obj.id, obj.neighbours{egress -1}.system.id);
-                   obj.neighbours{egress -1}.system.enqueue(packet);
-               else
-                   %drop packet
-                   %fprintf('\n[%d][System %d]:Drop packet.',...
-                   %         current_time, obj.id);
-                   packet.destroy();
+               if(obj.drop_policy == 1)
+                   if(egress ~= 1)
+                       %enqueue in the next system
+                       %fprintf('\n[%d][System %d]:Enqueue into System %d',...
+                       %             current_time,...
+                       %             obj.id, obj.neighbours{egress -1}.system.id);
+                       obj.neighbours{egress -1}.system.enqueue(packet);
+                   else
+                       %drop packet
+                       %fprintf('\n[%d][System %d]:Drop packet.',...
+                       %         current_time, obj.id);
+                       packet.destroy();
+                   end
+               else %If we can't drop, then determine if we have neighbours or not.
+                   if(isempty(obj.neighbours))
+                       %drop packet
+                       %fprintf('\n[%d][System %d]:Drop packet.',...
+                       %         current_time, obj.id);
+                       packet.destroy();
+                   else
+                       obj.neighbours{egress}.system.enqueue(packet);
+                   end
                end
            end
         end
         
-        function initTx(obj, neighbours)            
+        function initTx(obj, neighbours, drop_policy)            
             obj.neighbours = neighbours;
-            random_dist = rand([1,numel(neighbours)+1]); %Can drop too, so, add 1
+            obj.drop_policy = drop_policy;
+            
+            %fprintf('\n[System %d]: Drop Policy: %d, Neighbours:',obj.id, obj.drop_policy);
+            %disp(neighbours);
+            
+            if(drop_policy == 0 && ~isempty(neighbours))
+                random_dist = rand([1,numel(neighbours)]); %Can't drop.
+                
+            elseif(drop_policy == 0 && isempty(neighbours))
+                %fprintf('\n[System %d]:Sink node',obj.id);
+                random_dist = [1]; %No neighbours, so drop only.
+            else
+                random_dist = rand([1,numel(neighbours)+1]); %Can drop too, so, add 1
+            end
             obj.policy = random_dist./sum(random_dist); %Probability of sending to each neighbour
             obj.commutator = datasample(1:numel(random_dist),10000,...
                                 'Weights', random_dist); %10000 ensures neat probability

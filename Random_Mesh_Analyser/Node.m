@@ -8,10 +8,12 @@ classdef Node < handle
         connected_neighbours = []; %array of objects of node types
         is_edge = false; % is on the edge of the grid? Could be computed
         system;
+        policy = 1;
+        sink = 0;
     end
     
     methods
-        function obj = Node(index, grid_size, positions, policy, edge_nodes, connect_edge)
+        function obj = Node(index, grid_size, positions, policy, edge_nodes, connect_prob)
             % initialize a node and create adjacencies with direct neighbours
             [obj.position.x, obj.position.y] = ind2sub(grid_size, index);
             fprintf('\n Node placed at ');
@@ -37,7 +39,7 @@ classdef Node < handle
             % Is it an edge node? If yes, construct an exclusion list of
             % nodes not to peer with
             exclusion_list = [];
-            if(connect_edge == 0)                
+            if(policy.connect_h_edge == 0)                
                 if((obj.position.x == 1) || (obj.position.x == grid_size(1)))                     
                     obj.is_edge = true;
                     % edge on top or bottom of matrix
@@ -48,8 +50,14 @@ classdef Node < handle
                         end
                     end
                 end
+            end
+            if(policy.connect_v_edge ==0)
                 if((obj.position.y == 1) || (obj.position.y == grid_size(2)))
                     obj.is_edge = true;
+                    if(obj.position.y == grid_size(2))
+                        obj.sink = true;
+                        %fprintf('\nFound sink at Node index %d',obj.index);
+                    end
                     % edge on left or right of matrix
                     for i=1:grid_size(1)
                         pos = find(positions==sub2ind(grid_size, i,obj.position.y),1);
@@ -60,68 +68,73 @@ classdef Node < handle
                 end
             end
             
-            % First, move up in row
-            for i=obj.position.x -1:-1:1
-                pos = find(positions==sub2ind(grid_size, i, obj.position.y),1);
-                if(~isempty(pos))
-                    % Not empty. Add to match
-                    if(isempty(find(exclusion_list == positions(pos),1)))
-                        matches(end +1) = positions(pos);
-                        fprintf('\nFound neighbour at ');
-                        disp(ind2sub(grid_size,positions(pos)));
-                    else
-                        fprintf('\nFound edge peer. Exclude!');
-                    end
-                    break;
-                end
-                % No node at this position, move ahead
-            end
-            % Then, move down in row
-            for i=obj.position.x + 1:grid_size(1)
-                pos = find(positions==sub2ind(grid_size, i, obj.position.y),1);
-                if(~isempty(pos))
-                    % Not empty. Add to match
-                    if(isempty(find(exclusion_list == positions(pos),1)))
-                        matches(end +1) = positions(pos);
-                        fprintf('\nFound neighbour at ');
-                        disp(ind2sub(grid_size,positions(pos)));
-                    else
-                        fprintf('\nFound edge peer. Exclude!');
-                    end
-                    break;
-                end
-                % No node at this position, move ahead
-            end
-
-            % Now, one column to left at a time
-            found = false;
-            col = obj.position.y;
-            while(~found)
-                %take one cloumn step back
-                if(col > 1)
-                    col = col -1 ;
-                else
-                    break;
-                end
-                for i=1:grid_size(1)
-                    pos = find(positions==sub2ind(grid_size,i, col),1);
+            if(policy.connect_adjacents == 1)
+                % First, move up in row
+                for i=obj.position.x -1:-1:1
+                    pos = find(positions==sub2ind(grid_size, i, obj.position.y),1);
                     if(~isempty(pos))
                         % Not empty. Add to match
                         if(isempty(find(exclusion_list == positions(pos),1)))
-                            found = true;
                             matches(end +1) = positions(pos);
                             fprintf('\nFound neighbour at ');
                             disp(ind2sub(grid_size,positions(pos)));
                         else
                             fprintf('\nFound edge peer. Exclude!');
                         end
+                        break;
                     end
                     % No node at this position, move ahead
+                end
+                % Then, move down in row
+                for i=obj.position.x + 1:grid_size(1)
+                    pos = find(positions==sub2ind(grid_size, i, obj.position.y),1);
+                    if(~isempty(pos))
+                        % Not empty. Add to match
+                        if(isempty(find(exclusion_list == positions(pos),1)))
+                            matches(end +1) = positions(pos);
+                            fprintf('\nFound neighbour at ');
+                            disp(ind2sub(grid_size,positions(pos)));
+                        else
+                            fprintf('\nFound edge peer. Exclude!');
+                        end
+                        break;
+                    end
+                    % No node at this position, move ahead
+                end
+            end
+
+            % Now, one column to left at a time
+            found = false;
+            col = obj.position.y;
+            if(strcmp(policy.flow,'random'))
+                while(~found)
+                    %take one cloumn step back
+                    if(col > 1)
+                        col = col -1 ;
+                    else
+                        break;
+                    end
+                    for i=1:grid_size(1)
+                        pos = find(positions==sub2ind(grid_size,i, col),1);
+                        if(~isempty(pos))
+                            % Not empty. Add to match
+                            if(isempty(find(exclusion_list == positions(pos),1)))
+                                found = true;
+                                matches(end +1) = positions(pos);
+                                fprintf('\nFound neighbour at ');
+                                disp(ind2sub(grid_size,positions(pos)));
+                            else
+                                fprintf('\nFound edge peer. Exclude!');
+                            end
+                        end
+                        % No node at this position, move ahead
+                    end
                 end
             end
             % Now, one column to right at a time
             found = false;
             col = obj.position.y;
+            
             while(~found)
                 %take one cloumn step back
                 if(col < grid_size(2))
@@ -153,7 +166,7 @@ classdef Node < handle
                 while(numel(obj.connected_neighbours) == 0)
                     for element=1:numel(matches)
                         selector = rand(1,1);
-                        if(selector<policy)
+                        if(selector<connect_prob)
                             % Add as adjacency
                             obj.connected_neighbours(end+1)=matches(element);
                         end
@@ -169,6 +182,12 @@ classdef Node < handle
         end
         
         function install_system(obj, capacity, num_servers, policy, rates)
+            if(strcmp(policy, 'left'))
+                %don't drop packets
+                obj.policy = 0;
+            else
+                %fprintf('\n[System %d]:Drop packets', obj.index);
+            end
             obj.system = System(obj.index, capacity, num_servers, policy, rates);
         end
         
@@ -183,7 +202,7 @@ classdef Node < handle
                 index = find(topology.positions == obj.connected_neighbours(i), 1);
                 neighbours{i} = topology.nodes{index};                
             end
-            obj.system.installAdjacencies(neighbours);
+            obj.system.installAdjacencies(neighbours, obj.policy);
         end
     end
     
