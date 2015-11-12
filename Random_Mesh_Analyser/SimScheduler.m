@@ -180,17 +180,19 @@ classdef SimScheduler < handle
         end
         
         function visualizePacketLife(obj)
-            f = histogram(obj.packet_lifetimes, 'Normalization','pdf');
-            f.title = 'Packet Lifetime PDF';
-            f.xlabel = 'Lifetime';
-            f.ylabel = 'f(t)';
+            figure;
+            histogram(obj.packet_lifetimes, 'Normalization','pdf');
+            title('Packet Lifetime PDF');
+            xlabel('Lifetime (ms)');
+            ylabel('f(t)');
         end
         
         function visualizePacketWaitTimes(obj)
-            f = histogram(obj.packet_wait_times, 'Normalization','pdf');
-            f.title = 'Packet Waiting time PDF';
-            f.xlabel = 'Waiting Time';
-            f.ylabel = 'f(t)';
+            figure;
+            histogram(obj.packet_wait_times, 'Normalization','pdf');
+            title('Packet Waiting time PDF');
+            xlabel('Waiting Time (ms)');
+            ylabel('f(t)');
         end
         
         function val = averageHopCounts(obj)
@@ -222,23 +224,25 @@ classdef SimScheduler < handle
             if(strcmp(scope,'local'))
                 for i=1:length(obj.systems)
                     if(obj.systems{i}.id == id)
-                        f = histogram(obj.systems{i}.getDistribution(),...
+                        figure;
+                        histogram(obj.systems{i}.getDistribution(),...
                                                     'Normalization','pdf');
                         f_title = sprintf('Server [%d] Service Time PDF',i);
-                        f.title(f_title);
-                        f.xlabel = 'Service time';
-                        f.ylabel = 'f(t)';                        
+                        title(f_title);
+                        xlabel('Service time');
+                        ylabel('f(t)');                        
                         break;
                     end
                 end                
             elseif(strcmp(scope,'network'))
                 for i=1:length(obj.systems)
                     distribution = [distribution, obj.systems{i}.getDistribution()];
-                end                
-                f = histogram(distribution, 'Normalization', 'pdf');
-                f.title = 'Network Service time PDF';
-                f.xlabel = 'Service Time';
-                f.ylabel = 'f(t)';                
+                end     
+                figure
+                histogram(distribution, 'Normalization', 'pdf');
+                title('Network Service time PDF');
+                xlabel('Service Time(ms)');
+                ylabel('f(t)');                
             end                
         end
         

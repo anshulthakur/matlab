@@ -16,7 +16,7 @@ topology = Topology.getTopology(25, grid_size, topo_policy);
 
 %Create SimScheduler
 scheduler = SimScheduler.getScheduler();
-scheduler.setRunLength(2000);
+scheduler.setRunLength(100);
 
 %init scheduler with topology
 scheduler.init(topology);
@@ -43,16 +43,13 @@ end
 topology.visualize();
 hold off;
 
-figure('Name','Packet Life');
 scheduler.visualizePacketLife();
 
 scheduler.showQueueLengths();
 scheduler.showSystemPopulation();
 
-figure('Name','Service Times');
 scheduler.visualizeServiceTime('network',0);
 
-figure('Name','Packet Waiting Times');
 scheduler.visualizePacketWaitTimes();
 
 fprintf('\nAverage hopcounts: %d',scheduler.averageHopCounts());

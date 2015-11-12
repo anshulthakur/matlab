@@ -1,15 +1,16 @@
 % Scenario:
 % A topology of 25 nodes placed on a 5x5 grid and connected in a
-% forward packet flow model with no dropping at transit nodes.
-% Nodes on the same level (same column) do not peer with each other.
+% random packet flow model with drops at any node.
+% Nodes on the same level (same column) can peer with each other.
+% Infinite buffer capacities at each node, but single servers
 
 %Create Topology
 grid_size = struct('rows',5,'columns',5);
-topo_policy = struct('connect_vertical_edge_nodes', 0, ...
+topo_policy = struct('connect_vertical_edge_nodes', 1, ...
                      'connect_horizontal_edge_nodes', 1, ...
-                     'connect_same_level_peers', 0, ...
+                     'connect_same_level_peers', 1, ...
                      'adjacent_peer_probability', 1, ...
-                     'flow', 'forward'); %or 'random'
+                     'flow', 'random'); %or 'random'
                  
 topology = Topology.getTopology(25, grid_size, topo_policy); 
 %num_nodes, grid_size, mesh_connect_probability, connect_edges_0_1
@@ -22,8 +23,8 @@ scheduler.setRunLength(100);
 scheduler.init(topology);
 
 %Install Systems on Grid
-drop_policy = 'left'; %for no drop in non-edge nodes, or 'random'.
-topology.installSystems(20, 2, drop_policy, [3 3]); %capacity(inf), num_servers per system, policy, rates
+drop_policy = 'random'; %for no drop in non-edge nodes, or 'random'.
+topology.installSystems(0, 1, drop_policy, [3]); %capacity(inf), num_servers per system, policy, rates
 
 %Install Adjacencies
 topology.installAdjacencies();
@@ -44,11 +45,14 @@ topology.visualize();
 hold off;
 
 scheduler.visualizePacketLife();
+hold off;
 
 scheduler.showQueueLengths();
+
 scheduler.showSystemPopulation();
 
 scheduler.visualizeServiceTime('network',0);
+hold off;
 
 scheduler.visualizePacketWaitTimes();
 
