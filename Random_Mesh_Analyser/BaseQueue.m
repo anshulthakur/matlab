@@ -1,4 +1,7 @@
 classdef BaseQueue < handle
+    %BaseQueue A queue implementation to store multiple objects and
+    % retrieve them one at a time using add() and remove() methods.
+    
     properties
         capacity; 
     end

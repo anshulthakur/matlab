@@ -1,6 +1,15 @@
 classdef Service < handle & BaseEntity
-    %Service A representation of a server having some service time
+    %Service A representation of a server station having some service time
     % distribution
+    % Currently, only Exponential server is supported.
+    % A server whose service depends only on the packet length could also
+    % be implemented with little changes, where, on fixing the packet
+    % length, the server becomes deterministic.
+    % Current exponential server does not take into account the packet
+    % length. There is another variant possible where the packet length
+    % varies exponentially while the rate of server is fixed at 1 unit of
+    % packet length per tick. That would also be an exponential server
+    % (which becomes a Deterministic server when packet length is fixed).
         
     properties
         distribution;
@@ -78,7 +87,11 @@ classdef Service < handle & BaseEntity
             service.is_busy = false;
         end
         
-        function feed(obj, packet)          
+        function feed(obj, packet)
+            %%
+            % Feed the packet into the server.
+            % This method computes the service time of the packet 
+            
             current_time = SimScheduler.getScheduler().getTime();
             
             %Time to completion
@@ -101,7 +114,13 @@ classdef Service < handle & BaseEntity
             obj.service_times = [obj.service_times, round(packet.finish_time - packet.last_service_start)];
         end
         
-        function serve(obj)            
+        function serve(obj)
+            %%
+            % Checks if a packet is in service at time instant. If service
+            % time has expired, the job is marked as complete and a
+            % serviceDone signal is raised. If the station is idle the idle
+            % time counters are incremented.
+            
             current_time = SimScheduler.getScheduler().getTime();
 
             %fprintf('\n Server: %d\tTime: %d',obj.id, current_time);

@@ -1,4 +1,8 @@
 classdef Queue < handle & BaseEntity
+    % Queue A System Input Queue which buffers incoming packets (and drops
+    % them if the queue is full).
+    % This Queue has three signals, 'Enqueue', 'Dequeue' and 'Drop' to
+    % which, other object can listen for possible use.
     properties
         capacity; 
     end
@@ -21,6 +25,9 @@ classdef Queue < handle & BaseEntity
 
     methods
         function obj = Queue(capacity)
+            %%
+            % Queue Constructor, creates a Queue of capacity given by user.
+            % If capacity is set to 0, it implies infinite capacity.
             current_time = SimScheduler.getScheduler().getTime();
             
             if(nargin==0 || (nargin >0 && capacity==0)) %Inifinite buffer
@@ -37,6 +44,9 @@ classdef Queue < handle & BaseEntity
         end
         
         function add( obj, el )
+            %%
+            % Add the packet 'el' to the queue. If added successfully,
+            % raise 'Enqueue' signal. If dropped, raise 'Drop' signal.
             if(obj.capacity == 0)
                 if obj.nextInsert == length( obj.elements )
                     obj.elements = [ obj.elements, cell( 1, length( obj.elements ) ) ];
@@ -65,6 +75,10 @@ classdef Queue < handle & BaseEntity
         end
         
         function el = remove( obj )
+            %%
+            % Remove the head of line element.
+            % If the queue is empty, return -1.
+            % The caller must check the class of returned object.
             if obj.isEmpty()
                 %error( 'Queue is empty' );
                 %fprintf( '\nQueue is empty' );
@@ -99,10 +113,14 @@ classdef Queue < handle & BaseEntity
         end
         
         function tf = isEmpty( obj )
+            %%
+            % Check if Queue is empty
             tf = ( obj.nextRemove >= obj.nextInsert );
         end
         
         function n = get.NumElements( obj )
+            %%
+            % Get the number of elements in the queue.
             n = obj.nextInsert - obj.nextRemove;
         end
     end

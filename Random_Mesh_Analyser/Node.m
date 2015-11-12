@@ -1,12 +1,16 @@
 classdef Node < handle
-    %NODE Summary of this class goes here
-    %   Detailed explanation goes here
+    %NODE Represents an entity placed on a Topology Grid.
+    %   A Node is placed on a Topology map which is represented as a
+    %   multidimensional array of discrete points in space. Each node is
+    %   identified by its array index and based on the policy of
+    %   connections, has a set of identified adjacencies with which it
+    %   could peer with.
     
     properties
         position = struct('x',0,'y',0);
-        index = 0; % could have been computed from position
+        index = 0;
         connected_neighbours = []; %array of objects of node types
-        is_edge = false; % is on the edge of the grid? Could be computed
+        is_edge = false;
         system;
         policy = 1;
         sink = 0;
@@ -14,7 +18,35 @@ classdef Node < handle
     
     methods
         function obj = Node(index, grid_size, positions, policy, edge_nodes, connect_prob)
-            % initialize a node and create adjacencies with direct neighbours
+            %% 
+            % Initialize a node and create adjacencies with direct neighbours
+            % Inputs:
+            % index: index on the topology [integer]
+            % grid_size: size of the 2-D Topology Grid created as a 
+            %            1x2 array of integers. [x-size, y-size]
+            % Positions: Positions of all other nodes that have been placed
+            %            The nodes might have been randomly placed by the
+            %            code, or explicitly placed by the user.
+            % Policy:   A dictionary of policies that the node must obey.
+            %           'connect_v_edge': [0/1] - Connect vertically
+            %           adjacent edge nodes?
+            %           'connect_h_edge': [0/1] - Connect horizontally
+            %           adjacent edge nodes?
+            %           'connect_adjacents': [0/1] - Connect with peers on
+            %           the same vertical column of grid or not?
+            %           'flow': 'random'/'left' - If option is set to
+            %           random, the node will search for possible peers in
+            %           both left and right direction. Thus, packets coming
+            %           from one direction may be sent to any other peer in
+            %           a left/right direction. If set to 'left', it will
+            %           only search from left to right, such that no back
+            %           routing of packets will take place towards left. 
+            % Connect Probability: Given a set of discovered neighbours,
+            %           this values specifies the probability with which
+            %           the node will actually peer with the neighbour. If
+            %           set to 1, node will peer with every neighbour
+            %           discovered. If 0, with none.
+            
             [obj.position.x, obj.position.y] = ind2sub(grid_size, index);
             fprintf('\n Node placed at ');
             disp([obj.position.x, obj.position.y]);
@@ -182,6 +214,16 @@ classdef Node < handle
         end
         
         function install_system(obj, capacity, num_servers, policy, rates)
+            %%
+            % Install a Queueing system on the node. 
+            % Parameters:
+            % Capacity: Input Queue capacity
+            % Num_servers: Number of server stations to install in the
+            % system.
+            % Policy: Currently unused. Meant for dealing with class
+            % traffic.
+            % Rates: An array of Service Rates. The dimensions must match
+            % with the number specified in num_servers.
             if(strcmp(policy, 'left'))
                 %don't drop packets
                 obj.policy = 0;
@@ -196,7 +238,8 @@ classdef Node < handle
         end
         
         function putNeighbours(obj, topology)
-            %Create a cell matrix of handles of connected nodes
+            %%
+            % Create a cell matrix of handles of connected nodes
             neighbours = cell(1,length(obj.connected_neighbours));
             for i=1:numel(obj.connected_neighbours)
                 index = find(topology.positions == obj.connected_neighbours(i), 1);

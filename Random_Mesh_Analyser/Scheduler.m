@@ -1,5 +1,16 @@
 classdef Scheduler < handle & BaseEntity
     %Scheduler Schedules the packet for processing in one of the servers
+    % It represents the scheduler element of a System placed on the node.
+    % The scheduler keeps track of the free servers in the system and
+    % whenever a new job arrives on the input queue, the scheduler may pop
+    % it off the queue and feed to one of the free servers for processing.
+    % If all servers are busy, the job remains in the waiting queue until
+    % some server becomes free. A scheduler is run on every epoch to allow
+    % any pending work to complete.
+    % The scheduler also maintains the overall statistics of the system
+    % like the number of packets admitted into the system and number of
+    % packets dropped (in case the input buffer is of finite length)
+    % The policy of class based scheduling is also one of its functions.
     
     properties
         policy;
@@ -31,6 +42,10 @@ classdef Scheduler < handle & BaseEntity
         end
         
         function routeToServer(obj, queue)
+            %%
+            % Routes the enqueued packet to a free server if one is
+            % available, or puts it back in the queue if none is available.
+            
             %current_time = SimScheduler.getScheduler().getTime();
             obj.num_admitted = obj.num_admitted +1;
             
@@ -58,7 +73,12 @@ classdef Scheduler < handle & BaseEntity
                 @(src, ~)self.dropPacket(src));
         end
         
-        function runScheduler(obj, station, ~)     
+        function runScheduler(obj, station, ~)
+            %%
+            % Every time a Station finishes service, the Server scheduler
+            % is run to feed a new job from the input queue into the server
+            % if one is available.
+            
             %current_time = SimScheduler.getScheduler().getTime();
             
             %Dequeue packet if any

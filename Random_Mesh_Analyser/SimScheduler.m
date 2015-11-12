@@ -1,5 +1,15 @@
 classdef SimScheduler < handle
     %SIMSCHEDULER Overall Simulation Scheduler controlling entire sequence
+    % This class represents the core scheduler of the simulator which keeps
+    % track of time and schedules events, allowing each job queue on each
+    % node to be processed onces per time tick. 
+    % Current time resolution of this scheduler is 1ms.
+    % It is implemented as a singleton such that a simulation can have only
+    % one single simulation scheduler and any object can call into it to
+    % get time state.
+    % This scheduler keeps the overall simulation/topology statistics like
+    % overall packet lifetime distributions, number of hops, delays etc.
+    
     
     properties
         topology ; %Topology being simulated
@@ -170,11 +180,17 @@ classdef SimScheduler < handle
         end
         
         function visualizePacketLife(obj)
-            histogram(obj.packet_lifetimes, 'Normalization','pdf');
+            f = histogram(obj.packet_lifetimes, 'Normalization','pdf');
+            f.title = 'Packet Lifetime PDF';
+            f.xlabel = 'Lifetime';
+            f.ylabel = 'f(t)';
         end
         
         function visualizePacketWaitTimes(obj)
-            histogram(obj.packet_wait_times, 'Normalization','pdf');
+            f = histogram(obj.packet_wait_times, 'Normalization','pdf');
+            f.title = 'Packet Waiting time PDF';
+            f.xlabel = 'Waiting Time';
+            f.ylabel = 'f(t)';
         end
         
         function val = averageHopCounts(obj)
@@ -206,8 +222,12 @@ classdef SimScheduler < handle
             if(strcmp(scope,'local'))
                 for i=1:length(obj.systems)
                     if(obj.systems{i}.id == id)
-                        histogram(obj.systems{i}.getDistribution(),...
+                        f = histogram(obj.systems{i}.getDistribution(),...
                                                     'Normalization','pdf');
+                        f_title = sprintf('Server [%d] Service Time PDF',i);
+                        f.title(f_title);
+                        f.xlabel = 'Service time';
+                        f.ylabel = 'f(t)';                        
                         break;
                     end
                 end                
@@ -215,7 +235,10 @@ classdef SimScheduler < handle
                 for i=1:length(obj.systems)
                     distribution = [distribution, obj.systems{i}.getDistribution()];
                 end                
-                histogram(distribution, 'Normalization', 'pdf');
+                f = histogram(distribution, 'Normalization', 'pdf');
+                f.title = 'Network Service time PDF';
+                f.xlabel = 'Service Time';
+                f.ylabel = 'f(t)';                
             end                
         end
         

@@ -1,5 +1,13 @@
 classdef System < handle & BaseEntity
     %SYSTEM Represents a System to be installed on a node
+    % A single representational entity that houses a queueing system.
+    % It comprises of an Input Queue, A Job scheduler, Service Station(s)
+    % and a transmit buffer. A traffic stream may be assiciated with each
+    % station which acts like a locally generated packet stream (example -
+    % A BTS catering to an area) along with traffic coming from other peers
+    % in the topology.
+    % It provides wrapper methods to get access to its internal statistics
+    % and member public properties.
     
     properties
         queue;

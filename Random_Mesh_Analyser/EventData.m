@@ -1,6 +1,5 @@
 classdef (ConstructOnLoad) EventData < event.EventData
-    %UNTITLED Summary of this class goes here
-    %   Detailed explanation goes here
+    %EventData Class to pass additional data to Event Listeners on notify.
     
     properties
         data;
