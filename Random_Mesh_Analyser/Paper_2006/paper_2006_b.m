@@ -75,11 +75,24 @@ set(fig,'defaulttextinterpreter','latex');
 plot(1:5:100, lifetimes, 'x:');
 hold on;
 theory_lives = zeros(1,20);
+%Theoretical lifetime given by parallel M/D/1 systems
 for i=1:length(theory_lives)
     lambda = i*5*4;
     theory_lives(i) = ((1/rate) + ((lambda*(1/(rate * rate)))/(2*(4 - (lambda * (1/rate))))))*1000;
 end
+kingman_lives = zeros(1,20);
+%Theoretical lifetime given by parallel M/D/M system (as given by Kingman)
+% ((C^2 + 1)/2)E[W(M/M/c)] ->C^2 is squared coefficient of variation
+% E[W(M/M/c)] = 1\mu + P(block)/(m.mu - lambda)
+%P(block) = ((c.rho)^c)(1/(1-rho))/(sum_k=0^(c-1) (c.rho)^k/k! + ((c.rho)^c)(1/(1-rho)))
+for i=1:length(theory_lives)
+    lambda = i*5*4;
+    kingman_lives(i) = ((1/2)*((1/rate) + ...
+        (p_blocking(4, rate, lambda)/((4*rate) - lambda))))*1000;
+end
+
 plot(1:5:100, theory_lives, 'o-');
+plot(1:5:100, kingman_lives, '+-');
 xlabel('\lambda (per sec)');
 ylabel('delay (ms)');
-legend('Simulation', 'Theory');
+legend('Simulation', 'Theory', 'Kingmans');
