@@ -1,0 +1,20 @@
+[System 5]	18
+[System 3]	19
+[System 1]	0
+[System 2]	13
+[System 4]	20
+Mean Queue Length: 14
+[System 5]	19
+[System 3]	20
+[System 1]	1
+[System 2]	14
+[System 4]	21
+Mean System Population: 15
+Average hopcounts: 1.442903e+00
+Server Utilization Statistics:
+[Server 5]: 9.996600e-01
+[Server 3]: 9.911400e-01
+[Server 1]: 7.033000e-01
+[Server 2]: 9.926700e-01
+[Server 4]: 9.963300e-01
+Network: Blocking Probability: 6.734258e-01

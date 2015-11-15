@@ -1,0 +1,84 @@
+[System 15]	74
+[System 7]	282
+[System 8]	225
+[System 14]	170
+[System 19]	323
+[System 25]	154
+[System 18]	181
+[System 10]	207
+[System 22]	113
+[System 1]	55
+[System 4]	93
+[System 20]	224
+[System 23]	80
+[System 5]	29
+[System 6]	222
+[System 3]	167
+[System 2]	22
+[System 24]	135
+[System 17]	298
+[System 12]	163
+[System 21]	1
+[System 11]	151
+[System 9]	373
+[System 13]	230
+[System 16]	223
+Mean Queue Length: 1.678000e+02
+
+[System 15]	75
+[System 7]	283
+[System 8]	226
+[System 14]	171
+[System 19]	324
+[System 25]	155
+[System 18]	182
+[System 10]	208
+[System 22]	114
+[System 1]	56
+[System 4]	94
+[System 20]	225
+[System 23]	81
+[System 5]	30
+[System 6]	223
+[System 3]	168
+[System 2]	23
+[System 24]	136
+[System 17]	299
+[System 12]	164
+[System 21]	2
+[System 11]	152
+[System 9]	374
+[System 13]	231
+[System 16]	224
+Mean System Population: 1.688000e+02
+
+Average hopcounts: 2.214195e+00
+
+Server Utilization Statistics:
+[Server 15]: 9.980400e-01
+[Server 7]: 9.851600e-01
+[Server 8]: 9.940400e-01
+[Server 14]: 9.947100e-01
+[Server 19]: 9.943300e-01
+[Server 25]: 9.984800e-01
+[Server 18]: 9.784800e-01
+[Server 10]: 9.905900e-01
+[Server 22]: 9.890500e-01
+[Server 1]: 9.262400e-01
+[Server 4]: 9.882100e-01
+[Server 20]: 9.958500e-01
+[Server 23]: 9.991400e-01
+[Server 5]: 9.918300e-01
+[Server 6]: 9.907800e-01
+[Server 3]: 9.858500e-01
+[Server 2]: 9.570300e-01
+[Server 24]: 9.944700e-01
+[Server 17]: 9.923800e-01
+[Server 12]: 9.892400e-01
+[Server 21]: 8.208300e-01
+[Server 11]: 9.860600e-01
+[Server 9]: 9.944200e-01
+[Server 13]: 9.938900e-01
+[Server 16]: 9.878400e-01
+
+Network: Blocking Probability: 0

@@ -1,0 +1,38 @@
+[System 20]	25
+[System 13]	0
+[System 21]	12
+[System 22]	4
+[System 5]	1
+[System 6]	23
+[System 2]	22
+[System 12]	5
+[System 18]	8
+[System 4]	0
+Mean Queue Length: 10
+
+[System 20]	27
+[System 13]	0
+[System 21]	14
+[System 22]	6
+[System 5]	3
+[System 6]	25
+[System 2]	24
+[System 12]	7
+[System 18]	10
+[System 4]	1
+Mean System Population: 1.170000e+01
+
+Average hopcounts: 1.326749e+00
+
+Server Utilization Statistics:
+[Server 20]: 9.946000e-01
+[Server 13]: 8.140800e-01
+[Server 21]: 9.993600e-01 
+[Server 22]: 5.365900e-01
+[Server 5]: 7.129000e-01
+[Server 6]: 9.847700e-01
+[Server 2]: 9.986900e-01
+[Server 12]: 6.438800e-01
+[Server 18]: 9.539400e-01
+[Server 4]: 8.450500e-01 
+Network: Blocking Probability: 4.052322e-01

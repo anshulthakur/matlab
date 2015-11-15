@@ -1,0 +1,56 @@
+[1,5,9] Sink Nodes. Load Balanced traffic of mesh nodes [4,2]-> [1,5]; [3]->[5]; [8,6]->[5,9]; [7]->[5]
+
+All servers exponential; Rates: 5 on Mesh Nodes; 9 on Gateways
+All loads identical, Poisson: Rates: 2;
+Buffers:10
+
+Statistics:
+[System 1]	0
+[System 5]	9
+[System 9]	0
+[System 2]	6
+[System 3]	9
+[System 4]	3
+[System 6]	3
+[System 7]	0
+[System 8]	6
+Mean Queue Length: 4
+
+[System 1]	1
+[System 5]	10
+[System 9]	0
+[System 2]	7
+[System 3]	10
+[System 4]	4
+[System 6]	4
+[System 7]	0
+[System 8]	7
+Mean System Population: 4.777778e+00
+
+Average hopcounts: 2.182759e+00
+
+Mean Packet Lifetime: 1.668290e+03
+
+Server Utilization Statistics:
+[Server 1]: 4.380000e-01
+[Server 5]: 9.394200e-01
+[Server 9]: 3.041800e-01
+[Server 2]: 9.290400e-01
+[Server 3]: 9.482800e-01
+[Server 4]: 7.018800e-01
+[Server 6]: 8.721400e-01
+[Server 7]: 6.583400e-01
+[Server 8]: 8.114200e-01
+
+Network: Blocking Probability: 1.344828e-01
+
+Effective Lambdas Calculated at each node (Jackson's Network Assumption)
+System 1: 700/151
+System 2: 672/151
+System 3: 740/151
+System 4: 522/151
+System 5: 1318/151
+System 6: 856/151
+System 7: 660/151
+System 8: 736/151
+System 9: 700/151
