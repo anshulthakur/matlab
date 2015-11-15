@@ -253,12 +253,12 @@ classdef Topology < handle
             fig = figure('Name','Topology');
             indices = zeros(0,2);
             for i=1:numel(obj.grid)
-                if(obj.grid(i) == 1)
+                if(obj.grid(i) ~= 0)
                     [pos_y,pos_x] = ind2sub(obj.grid_size, i);
                     indices = [indices; [pos_x, pos_y]];
                 end
             end
-            plot(indices(:,1), indices(:, 2), 'bx');
+            plot(indices(:,1), indices(:, 2), 'o');
             hold on;
             %Connect adjacents
             for i=1:numel(obj.positions)

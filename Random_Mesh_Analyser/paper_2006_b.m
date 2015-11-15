@@ -3,7 +3,7 @@
 rate = 100; %packets per second
 lifetimes = zeros(1,20);
 for i=1:20
-    lambda = 5*i;
+    lambda = 20*i;
     %Placement of nodes
     grid = [[1]];       
     topo = struct('mode','manual',...
@@ -34,7 +34,7 @@ for i=1:20
                     );
 
     %Install system of particular type on particular nodes
-    topology.installSystems([1 2 3 4], systemDescr); %Install same kind of system on all nodes
+    topology.installSystems([1], systemDescr); %Install same kind of system on all nodes
 
     %Initialize systems
     topology.initSystems();
@@ -47,7 +47,7 @@ for i=1:20
                     'class', 0, ...
                     'packetLength', 0 ...
                         );
-    topology.installStream([1 2 3 4], streamDescr);
+    topology.installStream([1], streamDescr);
 
     %**TODO**For multiclass traffic, there should be multiple queues at each
     %system.
