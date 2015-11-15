@@ -5,6 +5,7 @@ classdef Node < handle
     %   identified by its array index and based on the policy of
     %   connections, has a set of identified adjacencies with which it
     %   could peer with.
+    % Node is related to a topology.
     
     properties
         position = struct('x',0,'y',0);
@@ -14,10 +15,11 @@ classdef Node < handle
         system;
         policy = 1;
         sink = 0;
+        id = 0;
     end
     
     methods
-        function obj = Node(index, grid_size, positions, policy, edge_nodes, connect_prob)
+        function obj = Node(id, index, topology, policy)
             %% 
             % Initialize a node and create adjacencies with direct neighbours
             % Inputs:
@@ -47,10 +49,30 @@ classdef Node < handle
             %           set to 1, node will peer with every neighbour
             %           discovered. If 0, with none.
             
-            [obj.position.x, obj.position.y] = ind2sub(grid_size, index);
-            fprintf('\n Node placed at ');
+            [obj.position.x, obj.position.y] = ind2sub(topology.grid_size, index);
+            fprintf('\n Node ID %d (array index %d)placed at ', id, index);
             disp([obj.position.x, obj.position.y]);
             obj.index = index;
+            obj.id = id;
+
+            % If policy is provided, try to find neighbours from it
+            if(isa(policy, 'struct'))
+                obj.discover_neighbours(topology, policy);
+            end
+            
+            obj.system = {};
+        end
+        
+        function discover_neighbours(obj, topology, policy)
+            %%
+            % Discover neighbours on the 'grid' according to the policy
+            % rules specified in 'policy'
+            % Is it an edge node? If yes, construct an exclusion list of
+            % nodes not to peer with
+            
+            grid_size = topology.grid_size;
+            positions = topology.positions;
+            
             matches = [];
             % Find matches in x direction
             % starting from the current row, traverse up once to find the
@@ -67,9 +89,6 @@ classdef Node < handle
             % trouble.
             % In such case, it must be marked as edge node. (That can be
             % done on policy basis!)
-            
-            % Is it an edge node? If yes, construct an exclusion list of
-            % nodes not to peer with
             exclusion_list = [];
             if(policy.connect_h_edge == 0)                
                 if((obj.position.x == 1) || (obj.position.x == grid_size(1)))                     
@@ -198,7 +217,7 @@ classdef Node < handle
                 while(numel(obj.connected_neighbours) == 0)
                     for element=1:numel(matches)
                         selector = rand(1,1);
-                        if(selector<connect_prob)
+                        if(selector<policy.peer_connect_probability)
                             % Add as adjacency
                             obj.connected_neighbours(end+1)=matches(element);
                         end
@@ -207,30 +226,26 @@ classdef Node < handle
             else
                 fprintf('\nNo adjacencies found!');
             end
-            
-            obj.system = {};
-            % If it isn't on the edge, but does not have any node on the
-            % edge side, it could be the edge node. Determine...
         end
         
-        function install_system(obj, capacity, num_servers, policy, rates)
+        function add_neighbours(obj, positions)
+            obj.connected_neighbours = [obj.connected_neighbours, positions];
+        end
+        
+        function install_system(obj, props)
             %%
             % Install a Queueing system on the node. 
             % Parameters:
-            % Capacity: Input Queue capacity
-            % Num_servers: Number of server stations to install in the
-            % system.
-            % Policy: Currently unused. Meant for dealing with class
-            % traffic.
-            % Rates: An array of Service Rates. The dimensions must match
-            % with the number specified in num_servers.
-            if(strcmp(policy, 'left'))
-                %don't drop packets
-                obj.policy = 0;
-            else
-                %fprintf('\n[System %d]:Drop packets', obj.index);
-            end
-            obj.system = System(obj.index, capacity, num_servers, policy, rates);
+            obj.system = System(obj.id, props);
+        end
+        
+        function install_stream(obj, props)
+            %%
+            % Install a Queueing system on the node. 
+            % Parameters:
+            stream = cell(1,1);
+            stream{end}=Stream(props);
+            obj.system.streams = [obj.system.streams, stream];
         end
         
         function obj = getSystemHandle(self)
@@ -242,10 +257,9 @@ classdef Node < handle
             % Create a cell matrix of handles of connected nodes
             neighbours = cell(1,length(obj.connected_neighbours));
             for i=1:numel(obj.connected_neighbours)
-                index = find(topology.positions == obj.connected_neighbours(i), 1);
-                neighbours{i} = topology.nodes{index};                
+                neighbours{i} = topology.nodes{obj.connected_neighbours(i)};                
             end
-            obj.system.installAdjacencies(neighbours, obj.policy);
+            obj.system.installAdjacencies(neighbours);
         end
     end
     

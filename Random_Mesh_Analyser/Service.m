@@ -13,7 +13,7 @@ classdef Service < handle & BaseEntity
         
     properties
         distribution;
-        type;
+        type;       % 0: Exponential; 1: PacketLength; 2: Deterministic
         classes;    % Classes of traffic supported
         rate;       % Per class rate
         variance;   % Per class variance
@@ -35,7 +35,7 @@ classdef Service < handle & BaseEntity
     end
     
     methods
-        function service = Service(id, classes, rates, variances, service_type)
+        function service = Service(id, props)
             %Service Initializes an instance of server with requested
             %service parameters
             error_msg = 'Error creating Service class';
@@ -48,36 +48,41 @@ classdef Service < handle & BaseEntity
                 service.id = id;
             end
             
-            if(~isa(classes, 'double') || (isa(classes, 'double') && numel(classes) == 0))
+            if(~isa(props.ServiceClasses, 'double') || (isa(props.ServiceClasses, 'double') && numel(props.ServiceClasses) == 0))
                 throw(exception)
             else
-                service.classes = classes;
+                service.classes = props.ServiceClasses;
             end
             
-            if(isa(rates, 'double') && (numel(service.classes) ~= numel(rates)))
+            if(~isa(props.ServiceRates, 'double')) %Each server may have different rates for different classes
                 throw(exception)
             else
-                service.rate = rates;
+                service.rate = props.ServiceRates(id);
             end
             
-            if((~isa(service_type, 'char')))
+            if((~isa(props.ServerType, 'char')))
                 throw(exception)
             else
-                if(strcmp(service_type,'exponential'))
-                    service.type = service_type;
-                    service.distribution = 'exponential'; %Modify
+                if(strcmp(props.ServerType,'exponential'))
+                    service.type = 0;
+                    service.distribution = 'exponential';
+                elseif(strcmp(props.ServerType,'packetLength'))
+                    service.type = 1;
+                    service.distribution = 'packetLength';
+                elseif(strcmp(props.ServerType,'deterministic'))
+                    service.type = 2;
+                    service.distribution = 'deterministic';
                 else
                     throw(exception); %Not identified
                 end
             end
             
             
-            if((~isa(variances, 'double')) || ...
-                    (numel(variances)==0 && ~strcmp('exponential',service.type)))
-                % Variances must be provided if model is not exponential
+            if((~isa(props.Variances, 'double')) || ...
+                    (numel(props.Variances)==0 && (service.type ~= 0 && service.type ~= 1)))              
                 throw(exception)
             else
-                service.variance = variances;
+                service.variance = props.Variances;
             end
             
             service.current_job = [service.current_job, cell(1,1)];
@@ -97,8 +102,13 @@ classdef Service < handle & BaseEntity
             %Time to completion
             packet.last_service_start = current_time;
             packet.hop_count = packet.hop_count+1;
-            %packet.finish_time = packet.last_service_start + packet.length;
-            packet.finish_time = current_time +(( -(1/obj.rate) * log(rand(1)))*1000);
+            if(obj.type == 0)
+                packet.finish_time = current_time +(( -(1/obj.rate) * log(rand(1)))*1000);
+            elseif(obj.type==1)
+                packet.finish_time = current_time + packet.length;
+            elseif(obj.type==2)
+                packet.finish_time = current_time + ((1/obj.rate)*1000);%ms
+            end
             obj.current_job = cell(1,1);            
             obj.current_job{end} = packet;
             

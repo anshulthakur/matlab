@@ -20,7 +20,13 @@ The basic steps are delineated below:
                      'flow', 'forward'); %or 'random'. Packets flow left to right, or randomly (could visit the same node multiple times).
 
    %Create topology: Place 25 Nodes on the grid.
-   topology = Topology.getTopology(25, grid_size, topo_policy); 
+   topo = struct('mode', 'auto',...
+                 'grid', [],...
+                 'num_nodes', 25,...
+                 'grid_size', grid_size,...
+                 'topologyPolicy', topo_policy...
+                 );                    
+   topology = Topology.getTopology(topo); 
    ```
    The Topology is implemented as a singleton, so calling it more than once will have no effect. Also, to re-run the simulation, the `destroy()` method for topology must have been called before.
 
@@ -39,25 +45,41 @@ The basic steps are delineated below:
    ```
 
 4. Install Systems to be simulated on the nodes placed in the topology.
-   While installing systems on nodes, one must specify the attributes of the systems. Currently, the code supports only homogeneous systems (all identical). The policy may be `left` where no drop occurs at nodes which are not at the right edge of the topology. This simulates a packet flow from right to left in a transit network where traffic streams may be merging from multiple sources into a few PoPs.
+   While installing systems on nodes, one must specify the attributes of the systems. The `installSystems` method accepts either an array of node IDs where the systems with the specified attributes must be placed, or 'all' meaning place the same kind of systems on all nodes. The `Forwarding` attribute of the system specifies the kind of routing strategy when passing packets from one node to another. For a `random` mode, the packet will be routed to any one of the neighbours such that the probability matrix at each node is derived probabilistically. For a `balanced` mode, all neighbours are equally likely. This, coupled with `AbsorptionProbability` defines whether the system will drop the packet or forward it. `AbsorptionProbability` takes either a value between 0 and 1, or `random` to choose a probability randomly.
 
    Each system consists of an Input Queue, an internal job Scheduler, service station(s) and a transmit buffer. The service rate of servers must be specified.
 
    ```matlab   
-   drop_policy = 'left'; %for no drop in non-edge nodes, or 'random'.
-   topology.installSystems(20, 2, drop_policy, [3 3]); %capacity(0 for infinite), num_servers per system, policy, rates
+   %Install Systems on Grid
+   systemDescr = struct(...
+                   'QueueSize', 20,...
+                   'ServerType', 'exponential', ... %Or Deterministic
+                   'ServiceRates', [3],...
+                   'ServiceClasses', [0],...
+                   'Variances',[0],...
+                   'AbsorptionProbability',0.5, ...
+                   'Forwarding','random' ... %or random 
+                   );
+   topology.installSystems('all', systemDescr); %Install same kind of system on all nodes
    ```
 
 5. Install adjacencies on the systems once they've been placed on the grid. This initializes their transmit buffers to enqueue packets on the neighbour's input Queues post service completion.
 
    ```matlab
-   topology.installAdjacencies();
+   topology.initSystems();
    ```
 
-6. Associate traffic streams with each node with rate `lambda`. These streams are installed by the Simulation scheduler which schedules packet generation per stream and overall job scheduling.
+6. Associate traffic streams with each node with rate `lambda`. These streams are installed by the topology manager on the desired nodes. Like in the case of Systems, the first parameter in `installStreams` is either `all` or an array of node indexes where the stream must be installed.
 
    ```matlab
-   scheduler.scheduleStreams(2);
+   streamDescr = struct( ...  
+                'StreamType', 'poisson', ...
+                'GenerationTime', scheduler.getTtl(), ... %seconds
+                'lambda', 2, ...
+                'class', 0, ...
+                'packetLength', 0 ...
+                    );
+topology.installStream('all', streamDescr);
    ```
 
 7. Start simulation:

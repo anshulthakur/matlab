@@ -151,6 +151,11 @@ classdef SimScheduler < handle
             hdl = addlistener(topology, 'newSystem',...
                 @(src, data)obj.addSystems(src, data));
         end
+
+        function hdl = RegisterStreamAdd(obj, topology)
+            hdl = addlistener(topology, 'newStream',...
+                @(src, data)obj.addStream(src, data));
+        end
         
         function init(obj, topology)
             obj.setTopology(topology);
@@ -163,8 +168,18 @@ classdef SimScheduler < handle
         
         function spinScheduler(obj)
            obj.running = true; 
-           fprintf('\nScheduler starting.');
+           fprintf('\nScheduler running.');
         end
+        
+        function addStream(obj, stream, systems)
+            %Find the system with which it was associated
+            for i=1:length(obj.systems)
+                if(obj.systems{i}.id == systems.system{end}.id)
+                    fprintf('\nAssociated Stream of type %d with System (id: %d)',...
+                                   stream.distribution ,obj.systems{i}.id); 
+                end
+            end
+        end        
         
         function scheduleStreams(obj, lambdas)
             %for each stream, assiciate a class of traffic             
@@ -179,6 +194,9 @@ classdef SimScheduler < handle
             end
         end
         
+        function val = getMeanPacketLifetime(obj)
+            val = mean(obj.packet_lifetimes);
+        end
         function visualizePacketLife(obj)
             figure;
             histogram(obj.packet_lifetimes, 'Normalization','pdf');

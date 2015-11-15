@@ -2,6 +2,8 @@
 % A topology of 25 nodes placed on a 5x5 grid and connected in a
 % forward packet flow model with no dropping at transit nodes.
 % Nodes on the same level (same column) do not peer with each other.
+% Two servers per system (rates 3 per server) and lambda is 2
+% Each node has a buffer capacity of 20 packets.
 
 %Create Topology
 grid_size = struct('rows',5,'columns',5);
@@ -11,25 +13,46 @@ topo_policy = struct('connect_vertical_edge_nodes', 0, ...
                      'adjacent_peer_probability', 1, ...
                      'flow', 'forward'); %or 'random'
                  
-topology = Topology.getTopology(25, grid_size, topo_policy); 
-%num_nodes, grid_size, mesh_connect_probability, connect_edges_0_1
+topo = struct('mode', 'auto',...
+              'grid', [],...
+              'num_nodes', 25,...
+              'grid_size', grid_size,...
+              'topologyPolicy', topo_policy...
+              );                    
+topology = Topology.getTopology(topo); 
 
 %Create SimScheduler
 scheduler = SimScheduler.getScheduler();
-scheduler.setRunLength(100);
+scheduler.setRunLength(50);
 
 %init scheduler with topology
 scheduler.init(topology);
 
 %Install Systems on Grid
-drop_policy = 'left'; %for no drop in non-edge nodes, or 'random'.
-topology.installSystems(20, 2, drop_policy, [3 3]); %capacity(inf), num_servers per system, policy, rates
+systemDescr = struct(...
+                'QueueSize', 20,...
+                'ServerType', 'exponential', ... %Or Deterministic
+                'ServiceRates', [1.5 1.5],...
+                'ServiceClasses', [0],...
+                'Variances',[],...
+                'AbsorptionProbability',0, ...
+                'Forwarding','balance' ... %or random 
+                );
+topology.installSystems('all', systemDescr); %Install same kind of system on all nodes
 
 %Install Adjacencies
-topology.installAdjacencies();
+topology.initSystems();
 
 %Associate streams with each node
-scheduler.scheduleStreams(2); %parameter is lambda value (array of lambdas)
+streamDescr = struct( ...  
+                'StreamType', 'poisson', ...
+                'GenerationTime', scheduler.getTtl(), ... %seconds
+                'lambda', 2, ...
+                'class', 0, ...
+                'packetLength', 0 ...
+                    );
+topology.installStream('all', streamDescr);
+
 
 %**TODO**For multiclass traffic, there should be multiple queues at each
 %system.

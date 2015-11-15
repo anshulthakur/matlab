@@ -3,6 +3,7 @@
 % random packet flow model with drops at any node.
 % Nodes on the same level (same column) can peer with each other.
 % Infinite buffer capacities at each node, but single servers
+% One server per system (rates 3 per server) and lambda is 2
 
 %Create Topology
 grid_size = struct('rows',5,'columns',5);
@@ -12,8 +13,13 @@ topo_policy = struct('connect_vertical_edge_nodes', 1, ...
                      'adjacent_peer_probability', 1, ...
                      'flow', 'random'); %or 'random'
                  
-topology = Topology.getTopology(25, grid_size, topo_policy); 
-%num_nodes, grid_size, mesh_connect_probability, connect_edges_0_1
+topo = struct('mode', 'auto',...
+              'grid', [],...
+              'num_nodes', 25,...
+              'grid_size', grid_size,...
+              'topologyPolicy', topo_policy...
+              );                    
+topology = Topology.getTopology(topo); 
 
 %Create SimScheduler
 scheduler = SimScheduler.getScheduler();
@@ -23,15 +29,30 @@ scheduler.setRunLength(100);
 scheduler.init(topology);
 
 %Install Systems on Grid
-drop_policy = 'random'; %for no drop in non-edge nodes, or 'random'.
-topology.installSystems(0, 1, drop_policy, [3]); %capacity(inf), num_servers per system, policy, rates
+%Install Systems on Grid
+systemDescr = struct(...
+                'QueueSize', 20,...
+                'ServerType', 'exponential', ... %Or Deterministic
+                'ServiceRates', [3],...
+                'ServiceClasses', [0],...
+                'Variances',[],...
+                'AbsorptionProbability','random', ...
+                'Forwarding','random' ... %or random 
+                );
+topology.installSystems('all', systemDescr); %Install same kind of system on all nodes
 
 %Install Adjacencies
-topology.installAdjacencies();
+topology.initSystems();
 
 %Associate streams with each node
-scheduler.scheduleStreams(2); %parameter is lambda value (array of lambdas)
-
+streamDescr = struct( ...  
+                'StreamType', 'poisson', ...
+                'GenerationTime', scheduler.getTtl(), ... %seconds
+                'lambda', 2, ...
+                'class', 0, ...
+                'packetLength', 0 ...
+                    );
+topology.installStream('all', streamDescr);
 %**TODO**For multiclass traffic, there should be multiple queues at each
 %system.
 

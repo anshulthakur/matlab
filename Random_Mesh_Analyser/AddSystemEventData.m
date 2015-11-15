@@ -12,7 +12,6 @@ classdef (ConstructOnLoad) AddSystemEventData < event.EventData
     methods
         function obj = AddSystemEventData(sys)            
             obj.system{end} = sys;
-            fprintf('\nAdding system %d',obj.system{end}.id);
         end
     end    
 end

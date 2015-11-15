@@ -14,7 +14,7 @@ classdef System < handle & BaseEntity
         stations;
         scheduler;
         transmitter;
-        streams;
+        streams = {};
     end
     
     properties (Transient)
@@ -24,21 +24,21 @@ classdef System < handle & BaseEntity
     end
     
     methods
-        function obj = System(id,capacity, num_stations, policy, ...
-                                                        rates)
+        function obj = System(id, props)
             obj.id = id;
-            obj.queue = Queue(capacity);
+            obj.queue = Queue(props.QueueSize);
             obj.queue.id = id;
             
-            obj.stations = cell(1,num_stations);
+            obj.stations = cell(1,length(props.ServiceRates));
             for i=1:length(obj.stations)
                 %Initialize server
-                obj.stations{i} = Service(i, 0, rates(i), ...
-                                                        [], 'exponential');
+                obj.stations{i} = Service(i, props);
                 obj.stations{i}.system_id = obj.id;
             end
             obj.scheduler = Scheduler(obj.stations, obj.queue);
-            obj.transmitter = Transmit(num_stations);
+            obj.transmitter = Transmit(length(props.ServiceRates), ...
+                                        props.AbsorptionProbability,...
+                                        props.Forwarding);
             obj.transmitter.id = id;
             
             %Attach scheduler to queue
@@ -69,8 +69,8 @@ classdef System < handle & BaseEntity
             obj.transmitter.transmit();
         end
         
-        function installAdjacencies(obj, neighbours, drop_policy)
-            obj.transmitter.initTx(neighbours, drop_policy);
+        function installAdjacencies(obj, neighbours)
+            obj.transmitter.initTx(neighbours);
         end
         
         function q_len = getQueueLength(obj)
