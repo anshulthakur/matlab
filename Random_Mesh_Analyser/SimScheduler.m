@@ -212,6 +212,14 @@ classdef SimScheduler < handle
             xlabel('Waiting Time (ms)');
             ylabel('f(t)');
         end
+
+        function visualizePacketWaitTimesCDF(obj)
+            figure;
+            histogram(obj.packet_wait_times, 'Normalization','cdf');
+            title('Packet Waiting time CDF');
+            xlabel('Waiting Time (ms)');
+            ylabel('f(t)');
+        end        
         
         function val = averageHopCounts(obj)
             val = mean(obj.packet_hopcounts);
